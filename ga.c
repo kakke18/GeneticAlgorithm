@@ -15,7 +15,7 @@
 
 
 /******************* マップの情報の読み込み ******************/
-#include"map1.c"         // int mapdata[WX][WY] などを初期化
+#include"map3.c"         // int mapdata[WX][WY] などを初期化
 
 
 /************************ 変数宣言 ***************************/
@@ -210,6 +210,12 @@ void disp_action(int n, int steps) {
 
     /* 最終的な適応度(評価値，ゴールとの現在位置との差で計算)*/
     fit = 1 + abs(GOAL_X - START_X) + abs(GOAL_Y - START_Y ) - abs(GOAL_X - x) - abs(GOAL_Y - y);
+
+    /* fit < 0 なら fit = 0 とする */
+    if (fit < 0) {
+        fit = 0;
+    }
+
     printf("この個体の適応度 = %d\n", fit);
 }
 
@@ -237,43 +243,58 @@ int obtain_input(int x, int y) {
 
 /* n 世代だけ世代交代させる */
 void generation(int n) {
-    int i, max, maxnum, kbd;  // 作業変数 
-    int maximum;              // 理論上の最大適応度
+    int max, maxnum, kbd;   // 作業変数 
+    int num_gene;           //世代数
+    int maximum;            // 理論上の最大適応度
 
     /* 変数初期化 */
-    i = 0;
+    num_gene = 0;
 
     /* 理論上の最大適応度（今回の適応度定義式による）  */
     /* （現在位置がゴール位置に一致したとき最大になる）*/
-    maximum = 1 + abs(GOAL_X - START_X) + abs(GOAL_Y - START_Y );
+    maximum = 1 + abs(GOAL_X - START_X) + abs(GOAL_Y - START_Y);
 
     /* 初期個体群の適応度を求める(引数は動かす最大step数) */
     calc_fitness(100);
 
+    /* 初期個体群の最大適応度を表示 */
+    max = fitness[0];
+    maxnum = 0;
+    for (int i = 1; i < POP; i++) {    // 全個体をスキャンして値を更新
+        if (fitness[i] > max) {
+            max = fitness[i];
+            maxnum = i;
+        }
+    }
+    printf("世代 No.0:最大適応度 = %d\n", max);
+
     /* 世代交代 */
     do {
-        /* 次世代の POP個の個体を求める */
-        determine_next_generation( );
+        /* 世代数を増やす */
+        num_gene++;
+
+        /* 次世代の POP 個の個体を求める */
+        determine_next_generation();
         
         /* 各個体の適応度を求める(引数は動かす最大step数) */
         calc_fitness(100);
+
         /* 最大適応度を求める */
-        max = - WX * WY;    // 仮の値
-        maxnum = 0;         // 仮の値 
-        for (int j = 0; j < POP; j++) {    // 全個体をスキャンして値を更新
-            if (fitness[j] > max) {
-                max = fitness[j];
-                maxnum = j;
+        max = fitness[0];
+        maxnum = 0;
+        for (int i = 1; i < POP; i++) {    // 全個体をスキャンして値を更新
+            if (fitness[i] > max) {
+                max = fitness[i];
+                maxnum = i;
             }
         }
-        if (i % 100 == 0) {    // 100世代ごとに画面表示 */
-            printf("世代 No.%d:最大適応度 = %d\n", i, max);
+        if (num_gene % 100 == 0) {    // 100世代ごとに画面表示 */
+            printf("世代 No.%d:最大適応度 = %d\n", num_gene, max);
         }
-        i++;
-    } while (max < maximum && i < n);
+    } while (max < maximum && num_gene < n);
 
     if (max == maximum) {
-        printf("世代 No.%d:最大適応度 = %d\n", i, max);
+        printf("世代 No.%d:最大適応度 = %d\n", num_gene, max);
         printf("ゴールに到達するルールが得られたので世代交代を終了しました．\n");
     }
     printf("得られた解を示します．hit any key:");
@@ -289,8 +310,12 @@ void generation(int n) {
     /* 得られたルールの画面への表示 */
     printf("\n得られた解(ルール(遺伝子型))は次の通りです\n");
     printf("（入力0から入力%dまでのそれぞれの行動出力です）\n", IN);
-    for (i = 0; i < IN; i++) {
+    for (int i = 0; i < IN; i++) {
         printf("%d", genotype[maxnum][i]);
+        /* 改行 */
+        if (i % ((IN + 1) / 8) == 0) {
+            printf("\n");
+        }
     }
     printf("\n");
 }
@@ -302,21 +327,21 @@ void calc_fitness(int steps) {
     int dx, dy;             // 移動先の座標 
     int input, output;      // 入力・出力を数値化したもの
 
-    /* 変数初期化 */
-    i = 1;
-    finish = false;
-
     for (int n = 0; n < POP; n++) {
+        /* 変数初期化 */
+        i = 1;
+        finish = false;
+
         /* マップの初期化 */
         for (y = 0; y < WY; y++) {
             for (x = 0; x < WX; x++) {
                 map[y][x] = mapdata[y][x];
             }
         }
-        map[START_Y][START_X] = 2;    // スタート地点の設定
-        map[GOAL_Y][GOAL_X]   = 3;    // ゴール地点の設定
-        x = START_X;                  // 現在地のX座標の初期化
-        y = START_Y;                  // 現在地のY座標の初期化
+        map[START_Y][START_X] = 2;  // スタート地点の設定
+        map[GOAL_Y][GOAL_X] = 3;    // ゴール地点の設定
+        x = START_X;                // 現在地のX座標の初期化
+        y = START_Y;                // 現在地のY座標の初期化
 
         /* 個体No.n を steps 回だけ動かす */
         do {
@@ -327,8 +352,8 @@ void calc_fitness(int steps) {
             dx = x + move_x[output]; 
             dy = y + move_y[output];
 
-            /* 次の場所が壁(=1)，ゴール(=3)，通過軌跡(=4)以外なら動かす */
-            if (dx > 0 && dx < WX - 1 && dy > 0 && dy < WY - 1 && ( map[dy][dx] != 1 && map[dy][dx] != 3 && map[dy][dx] != 4)) {
+            /* 次の場所が壁(=1)，通過軌跡(=4)以外なら動かす */
+            if (dx > 0 && dx < WX - 1 && dy > 0 && dy < WY - 1 && ( map[dy][dx] != 1 && map[dy][dx] != 4)) {
                 map[y][x] = 4;  /* 今居る場所を通過軌跡(=4)にする */
                 x = dx;         /* 現在地のX座標を更新する */
                 y = dy;         /* 現在地をY座標を更新する */
@@ -359,7 +384,7 @@ void determine_next_generation() {
     int max, maxnum, sum, random;   // 作業用変数
     int new_genotype[POP][IN];      // 新しい個体
     int result_roulette;            // ルーレットの結果
-    int tmp1[random], tmp2[random]; // 一点交差用の作業変数
+    int tmp[IN];                   // 一点交差用の作業変数
 
     /* 変数初期化 */
     max = fitness[0];
@@ -407,21 +432,15 @@ void determine_next_generation() {
     /*---------- 一点交差 ----------*/
     for (int i = 0; i < POP; i += 2) {
         /* 交差率 */
-        random = rand() % 10;
-
-        /* 交叉する */
-        if (random < CROSSOVER * 10) {
+        if ((double) rand() / RAND_MAX < CROSSOVER) {
             /* 交差点の位置を算出 */
             random = rand() % IN;
 
             /* 遺伝子型を分割 */
             for(int j = random; j < IN; j++) {
-                tmp1[j] = new_genotype[i][j];       // 親1の後半
-                tmp2[j] = new_genotype[i + 1][j];   // 親2の後半
-            }
-            for(int j = random; j < IN; j++) {
-                new_genotype[i][j] = tmp2[j];       // 親1の後半を親2の後半で上書き
-                new_genotype[i + 1][j] = tmp1[j];   // 親2の後半を親1の後半で上書き
+                tmp[j] = new_genotype[i][j];                    // 親1の後半
+                new_genotype[i][j] = new_genotype[i + 1][j];    // 親1の後半を親2の後半で上書き
+                new_genotype[i + 1][j] = tmp[j];                // 親2の後半を親1の後半で上書き
             }
         }
     }
@@ -430,11 +449,8 @@ void determine_next_generation() {
     /*---------- 突然変異 ----------*/
     for (int i = 0; i < POP; i++) {
         for (int j = 0; j < IN; j++) {
-            /* 突然変異率を算出 */
-            random = rand() % 100;
-
-            /* 突然変異する */
-            if (random < MUTATION * 100) {
+            /* 突然変異率 */
+            if ((double) rand() / RAND_MAX < MUTATION) {
                 new_genotype[i][j] = rand() % 4;
             }
         }
@@ -446,4 +462,11 @@ void determine_next_generation() {
         new_genotype[0][i] = elitest[i];
     }
     /*---------------------------------*/
+
+    /* new_genotype を genotype にコピー */
+    for (int i = 0; i < POP; i++) {
+        for (int j = 0; j < IN; j++) {
+            genotype[i][j] = new_genotype[i][j];
+        }
+    }
 }
