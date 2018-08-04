@@ -69,8 +69,8 @@ int main() {
 void disp_map() {
     int x, y;  /* 制御変数 */
 
-    for(y = 0; y < WY; y++) {
-        for(x = 0; x < WX; x++) {
+    for (y = 0; y < WY; y++) {
+        for (x = 0; x < WX; x++) {
             switch( map[y][x]) {    /* ← y,x の順 */
                 case 0: /* ブランク       */
                     printf("　");
@@ -100,8 +100,8 @@ void init_population() {
     /* 乱数の初期化 */
     srand((unsigned)time(NULL));    /* 時刻で初期化     */
     /* 遺伝子型の初期化 */
-    for(i = 0; i < POP; i++) {             /* i:個体番号       */
-        for(j= 0; j < IN; j++) {          /* 入力に対する出力 */
+    for (i = 0; i < POP; i++) {             /* i:個体番号       */
+        for (j= 0; j < IN; j++) {          /* 入力に対する出力 */
             genotype[i][j] = rand() % 4;   /* [0,3] */
         }
     }
@@ -117,8 +117,8 @@ void disp_action(int n, int steps) {
     int fit, finish, kbd;
 
     /* マップの初期化 */
-    for(y = 0; y < WY; y++) {
-        for(x = 0; x < WX; x++) {
+    for (y = 0; y < WY; y++) {
+        for (x = 0; x < WX; x++) {
             map[y][x] = mapdata[y][x];
         }
     }
@@ -159,19 +159,19 @@ void disp_action(int n, int steps) {
         dx = x + move_x[output];    /* 次の場所（仮） */
         dy = y + move_y[output];    /* 次の場所（仮） */
         /* 次の場所が壁(=1)および通過軌跡(=4)以外なら動かす */
-        if(dx > 0 && dx < WX - 1 && dy > 0 && dy < WY - 1 && ( map[dy][dx] != 1 && map[dy][dx] != 4)) {
+        if (dx > 0 && dx < WX - 1 && dy > 0 && dy < WY - 1 && ( map[dy][dx] != 1 && map[dy][dx] != 4)) {
             map[y][x] = 4;  /* 今居る場所を通過軌跡(=4)にする */
             x = dx;         /* 現在地のX座標を更新する */
             y = dy;         /* 現在地をY座標を更新する */
             map[y][x] = 2;  /* 移動先の数値を直す      */
             /* ゴールに到達したら表示する */
-            if(x == GOAL_X && y == GOAL_Y) {
+            if (x == GOAL_X && y == GOAL_Y) {
                 printf("GOAL!!! ｬｯﾀ─ヽ(*´ｖ｀*)ﾉ─ｧｧ!!\n");
             }
         }
         else {
             finish = 1;  /* 即終了 */
-            if(map[dy][dx] == 1) {    /* 壁にぶつかった         */
+            if (map[dy][dx] == 1) {    /* 壁にぶつかった         */
                 printf("壁にぶつかりました！ ｡･ﾟ･(*ﾉД`*)･ﾟ･。\n");
             }
             else {                    /* １度通ったマスに戻った */
@@ -182,7 +182,7 @@ void disp_action(int n, int steps) {
         /* キーボード入力待ちにする */
         printf("hit any key (強制終了したいときはスペースキー):");
         kbd = getch();
-		if(kbd == 32) {
+		if (kbd == 32) {
             exit(1);
         }
         printf("\n\n");
@@ -206,9 +206,9 @@ int obtain_input(int x, int y) {
     int i, input_value = 0;    /* 作業変数 */
  
     /* エージェントの周囲を8ビットで数値化している */
-    for(i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++) {
         input_value = input_value * 2;
-        if(map[y + shift_y[i]][x + shift_x[i]] == 1) {
+        if (map[y + shift_y[i]][x + shift_x[i]] == 1) {
             input_value++;
         }
     }
@@ -239,19 +239,19 @@ void generation(int n) {
         /* 最大適応度を求める */
         max = - WX * WY;    /* 仮の値 */
         maxnum = 0;         /* 仮の値 */
-        for(j = 0; j < POP; j++) {    /* 全個体をスキャンして値を更新 */
-            if(fitness[j] > max) {
+        for (j = 0; j < POP; j++) {    /* 全個体をスキャンして値を更新 */
+            if (fitness[j] > max) {
                 max = fitness[j];
                 maxnum = j;
             }
         }
-        if(i % 100 == 0) {    /* 100世代ごとに画面表示 */
+        if (i % 100 == 0) {    /* 100世代ごとに画面表示 */
             printf("世代 No.%d:最大適応度 = %d\n", i, max);
         }
         i++;
     } while (max < maximum && i < n);
 
-    if(max == maximum) {
+    if (max == maximum) {
         printf("世代 No.%d:最大適応度 = %d\n", i, max);
         printf("ゴールに到達するルールが得られたので世代交代を終了しました．\n");
     }
@@ -268,7 +268,7 @@ void generation(int n) {
     /* 得られたルールの画面への表示 */
     printf("\n得られた解(ルール(遺伝子型))は次の通りです\n");
     printf("（入力0から入力%dまでのそれぞれの行動出力です）\n", IN);
-    for(i = 0; i < IN; i++) {
+    for (i = 0; i < IN; i++) {
         printf("%d", genotype[maxnum][i]);
     }
     printf("\n");
@@ -290,10 +290,10 @@ void calc_fitness(int steps) {
     int input, output;   /* 入力・出力を数値化したもの */
     int fit,finish,kbd;
 
-    for(n = 0; n < POP; n++) {
+    for (n = 0; n < POP; n++) {
         /* マップの初期化 */
-        for(y = 0; y < WY; y++) {
-            for(x = 0; x < WX; x++) {
+        for (y = 0; y < WY; y++) {
+            for (x = 0; x < WX; x++) {
                 map[y][x] = mapdata[y][x];
             }
         }
@@ -314,7 +314,7 @@ void calc_fitness(int steps) {
             dy = y + move_y[output];    /* 次の場所（仮） */
 
             /* 次の場所が壁(=1)およびゴール(=3)および通過軌跡(=4)以外なら動かす */
-            if(dx > 0 && dx < WX - 1 && dy > 0 && dy < WY - 1 && ( map[dy][dx] != 1 && map[dy][dx] != 3 && map[dy][dx] != 4)) {
+            if (dx > 0 && dx < WX - 1 && dy > 0 && dy < WY - 1 && ( map[dy][dx] != 1 && map[dy][dx] != 3 && map[dy][dx] != 4)) {
                 map[y][x] = 4;  /* 今居る場所を通過軌跡(=4)にする */
                 x = dx;         /* 現在地のX座標を更新する */
                 y = dy;         /* 現在地をY座標を更新する */
@@ -329,7 +329,11 @@ void calc_fitness(int steps) {
         } while ((x != GOAL_X || y != GOAL_Y) && i <= steps && finish == 0);
 
         /* 最終的な適応度（評価値，ゴールとの現在位置との差で計算）*/
-        fittnes[n] = 1 + abs(GOAL_X - START_X) + abs(GOAL_Y - START_Y ) - abs(GOAL_X - x) - abs(GOAL_Y - y);
+        fittness[n] = 1 + abs(GOAL_X - START_X) + abs(GOAL_Y - START_Y ) - abs(GOAL_X - x) - abs(GOAL_Y - y);
+        /* fitnness < 0 なら fitness = 0 とする */
+        if (fitness < 0) {
+            fitness = 0;
+        }
     }
 }
 
