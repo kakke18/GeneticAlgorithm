@@ -11,11 +11,11 @@
 #define OUT          4   // 出力の種類(4通り)
 #define POP        100   // 個体総数
 #define CROSSOVER  0.7   // 交叉率
-#define MUTATION  0.02   // 突然変異率
+#define MUTATION  0.03   // 突然変異率
 
 
 /******************* マップの情報の読み込み ******************/
-#include"map3.c"         // int mapdata[WX][WY] などを初期化
+#include"map4.c"         // int mapdata[WX][WY] などを初期化
 
 
 /************************ 変数宣言 ***************************/
